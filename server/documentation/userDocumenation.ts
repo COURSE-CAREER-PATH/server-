@@ -143,3 +143,103 @@
  *       409:
  *         description: Conflict - User already exists
  */
+
+//api documentation for authenticating  a user route
+
+/**
+ * @openapi
+ * /user/authenticate:
+ *   post:
+ *     tags:
+ *       - Users
+ *     summary: Authenticate a user
+ *     description: Authenticates a user by checking the email or mobile number and password. If the user is not verified, an email verification link is sent.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - Email
+ *               - Password
+ *             properties:
+ *               Email:
+ *                 type: string
+ *                 format: email
+ *                 description: The user's email address.
+ *               mobileNumber:
+ *                 type: number
+ *                 description: The user's mobile number.
+ *               Password:
+ *                 type: string
+ *                 format: password
+ *                 description: The user's password.
+ *     responses:
+ *       200:
+ *         description: User logged in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message.
+ *       400:
+ *         description: Bad request - User not verified
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Verification message.
+ *       401:
+ *         description: Unauthorized - Invalid credentials
+ *       404:
+ *         description: Not Found - User not found
+ *       500:
+ *         description: Internal Server Error
+ */
+
+//api documentation for verifying  a users email  route
+
+/**
+ * @openapi
+ * /user/{id}/verify/{token}:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Verify user's email
+ *     description: Verifies a user's email using the provided token.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the user.
+ *       - in: path
+ *         name: token
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The verification token.
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message.
+ *       400:
+ *         description: Bad request - Invalid link
+ *       500:
+ *         description: Internal Server Error
+ */
