@@ -11,6 +11,7 @@ import UserModel from "../models/userModel";
 // Define the shape of the request body
 interface RegisterUserRequest extends Request {
   body: {
+    uid: string;
     Email: string;
     mobileNumber: number;
     firstName: string;
@@ -62,6 +63,7 @@ const generateToken = (id: string): string => {
 const registerUser = asyncHandler(
   async (req: RegisterUserRequest, res: Response): Promise<void> => {
     const {
+      uid,
       Email,
       mobileNumber,
       firstName,
@@ -108,6 +110,7 @@ const registerUser = asyncHandler(
 
     // Create a new user document
     const newUser = new UserModel({
+      _id: uid, // Use Firebase UID as the custom _id
       Email,
       mobileNumber,
       firstName,

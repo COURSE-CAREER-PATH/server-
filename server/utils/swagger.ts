@@ -40,6 +40,7 @@ function swaggerDocs(app: Express, port: number) {
     res.setHeader("Content-Type", "application/json");
     res.send(swaggerSpec);
   });
+  
   log.info(`Docs available at http://localhost:${port}/docs`);
 }
 
