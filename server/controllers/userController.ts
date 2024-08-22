@@ -9,12 +9,18 @@ import { Request, Response } from "express";
 import UserModel from "../models/userModel";
 
 // Define the shape of the request body
-interface RegisterUserRequest extends Request {
+interface UserInterface extends Request {
+  [x: string]: any;
+  user?: {
+    id: string;
+  };
   body: {
     uid: string;
     Email: string;
     mobileNumber: number;
+    userName: string;
     firstName: string;
+    middleName: string;
     lastName: string;
     Password: string;
     Verified: boolean;
@@ -61,44 +67,11 @@ const generateToken = (id: string): string => {
 // @route /user/register
 // @access public
 const registerUser = asyncHandler(
-  async (req: RegisterUserRequest, res: Response): Promise<void> => {
-    const {
-      uid,
-      Email,
-      mobileNumber,
-      firstName,
-      lastName,
-      Password,
-      Country,
-      State,
-      additionalAddress,
-      zipCode,
-      ProfilePicture,
-      Language,
-      Bio,
-      LinkedIn,
-      Facebook,
-      Twitter,
-      Skills,
-      Overview,
-      Profession,
-      rating,
-      Portfolio,
-      companyLogo,
-      companyName,
-      companyPosition,
-      companySize,
-      companyAddress,
-      companyDescription,
-      companyLinkedIn,
-      companyFacebook,
-      companyTwitter,
-      companyWebsite,
-      companyPhone,
-    } = req.body;
+  async (req: UserInterface, res: Response): Promise<void> => {
+    const { uid, userName, Email, Password } = req.body;
 
     // Check if the user already exists
-    const userExists = await UserModel.findOne({ Email, mobileNumber });
+    const userExists = await UserModel.findOne({ Email });
     if (userExists) {
       res.status(400);
       throw new Error("User already exists");
@@ -112,44 +85,14 @@ const registerUser = asyncHandler(
     const newUser = new UserModel({
       _id: uid, // Use Firebase UID as the custom _id
       Email,
-      mobileNumber,
-      firstName,
-      lastName,
+      userName,
       Password: hashedPassword,
-      Country,
-      State,
-      additionalAddress,
-      zipCode,
-      ProfilePicture,
-      Language,
-      Bio,
-      LinkedIn,
-      Facebook,
-      Twitter,
-      Skills,
-      Overview,
-      Profession,
-      rating,
-      Portfolio,
-      companyLogo,
-      companyName,
-      companyPosition,
-      companySize,
-      companyAddress,
-      companyDescription,
-      companyLinkedIn,
-      companyFacebook,
-      companyTwitter,
-      companyWebsite,
-      companyPhone,
     });
 
     // Save the user to the database
     const user = await newUser.save();
 
     if (user) {
-      const token = generateToken(user._id);
-
       const emailToken = await new EmailToken({
         userId: user._id,
         token: crypto.randomBytes(32).toString("hex"),
@@ -162,36 +105,8 @@ const registerUser = asyncHandler(
         message: "An Email has been sent to your account. Please verify.",
         _id: user._id, // Ensure ObjectId is converted to string
         Email: user.Email,
-        mobileNumber: user.mobileNumber,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        Country: user.Country,
-        State: user.State,
-        aditionalAddress: user.additionalAddress,
-        zipCode: user.zipCode,
-        ProfilePicture: user.ProfilePicture,
-        Language: user.Language,
-        Bio: user.Bio,
-        LinkedIn: user.LinkedIn,
-        Facebook: user.Facebook,
-        Twitter: user.Twitter,
-        Skills: user.Skills,
-        Overview: user.Overview,
-        Profession: user.Profession,
-        rating: user.rating,
-        Portfolio: user.Portfolio,
-        companyLogo: user.companyLogo,
-        companyName: user.companyName,
-        companyPosition: user.companyPosition,
-        companySize: user.companySize,
-        companyAddress: user.companyAddress,
-        companyDescription: user.companyDescription,
-        companyLinkedIn: user.companyLinkedIn,
-        companyFacebook: user.companyFacebook,
-        companyTwitter: user.companyTwitter,
-        companyWebsite: user.companyWebsite,
-        companyPhone: user.companyPhone,
-        token: token, // Pass the generated token
+        userName: user.userName,
+        token: generateToken(user._id), // Pass the generated token
       });
     } else {
       res.status(400);
@@ -200,12 +115,11 @@ const registerUser = asyncHandler(
   }
 );
 
-
 //@description Authenticate a  user
 //@route /user/authenticate
 //@access  public
 const loginUser = asyncHandler(
-  async (req: RegisterUserRequest, res: Response): Promise<void> => {
+  async (req: UserInterface, res: Response): Promise<void> => {
     try {
       const { Email, mobileNumber, Password } = req.body;
 
@@ -234,7 +148,7 @@ const loginUser = asyncHandler(
             userId: user._id,
             token: crypto.randomBytes(32).toString("hex"),
           }).save();
-          
+
           const url = `${process.env.CLIENT_NAME}/user/${user._id}/verify/${token.token}`;
           await sendEmail(user.Email, "Verify Email", url);
         }
@@ -245,8 +159,14 @@ const loginUser = asyncHandler(
       }
 
       // If everything is fine, proceed with login success
-      res.status(200).send({message:"User logged in successfully"});
 
+      res.status(201).json({
+        message: "An Email has been sent to your account. Please verify.",
+        _id: user._id, // Ensure ObjectId is converted to string
+        Email: user.Email,
+        userName: user.userName,
+        token: generateToken(user._id), // Pass the generated token
+      });
     } catch (error) {
       res.status(500).send("Internal server error");
     }
@@ -278,7 +198,10 @@ const verifyEmailToken = asyncHandler(
       }
 
       // Update user as verified
-      await UserModel.updateOne({ _id: user._id }, { $set: { Verified: true } });
+      await UserModel.updateOne(
+        { _id: user._id },
+        { $set: { Verified: true } }
+      );
 
       // Remove the email token
       await EmailToken.deleteOne({ _id: token._id });
@@ -294,4 +217,114 @@ const verifyEmailToken = asyncHandler(
   }
 );
 
-export { registerUser, loginUser , verifyEmailToken };
+//@description Google sign Up
+//@route /user/googleSignup
+//@access  public
+const googleSignup = asyncHandler(
+  async (req: UserInterface, res: Response): Promise<void> => {
+    const { userName, Email, uid } = req.body;
+    try {
+      //check if user with same email already exists
+      let existingUser = await UserModel.findOne({ Email });
+
+      if (existingUser) {
+        existingUser.userName = userName; //update userName if necessary
+
+        await existingUser.save();
+
+        res.status(201).json({
+          message: "User signed in successfully",
+          _id: existingUser._id,
+          Email: existingUser.Email,
+          userName: existingUser.userName,
+          token: generateToken(existingUser._id), // Pass the generated token
+        });
+        return;
+      } else {
+        //if the user does not exist , create a new user
+        const newUser = new UserModel({
+          _id: uid, // Use Firebase UID as the custom _id
+          Email,
+          userName,
+        });
+
+        // Save the user to the database
+        const user = await newUser.save();
+        res.status(201).json({
+          message: "User signed up successfully",
+          _id: user._id,
+          Email: user.Email,
+          userName: user.userName,
+          token: generateToken(user._id), // Pass the generated token
+        });
+      }
+    } catch (error) {
+      console.error("Error handling Google Sign in!", error);
+      res.status(500).send("Server error");
+    }
+  }
+);
+
+//@ this function : it allows for getting the values from the update routes and make the changes in the database
+const updateUserProfile = async (
+  userId: string,
+  updates: Partial<UserInterface>
+): Promise<UserInterface> => {
+  const user = (await UserModel.findById(userId)) as UserInterface | null;
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  Object.assign(user, updates); // Assign new data to the user object
+  await user.save();
+
+  return user; // Return the updated user
+};
+
+// @description updatePersonalUserInfo
+// @route /user/updatePersonalUserInfo
+// @access  private
+const updatePersonalUserInfo = asyncHandler(
+  async (req: UserInterface, res: Response): Promise<void> => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res
+          .status(400)
+          .json({ success: false, message: "User not authenticated" });
+        return;
+      }
+
+      const userInfo = req.body;
+
+      // Pass userId and userInfo to the updateUserProfile function
+      const updatedUser = await updateUserProfile(userId, userInfo);
+
+      // Send back the updated user information as a response
+      res.status(200).json({
+        success: true,
+        message: "User profile updated successfully",
+        user: updatedUser,
+      });
+    } catch (error: unknown) {
+      console.error("Error updating user profile:", (error as Error).message);
+
+      res.status(500).json({
+        success: false,
+        message: (error as Error).message.includes("not found")
+          ? (error as Error).message
+          : "Internal server error",
+      });
+    }
+  }
+);
+
+
+export {
+  registerUser,
+  loginUser,
+  verifyEmailToken,
+  googleSignup,
+  updatePersonalUserInfo,
+};

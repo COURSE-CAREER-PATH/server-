@@ -2,6 +2,8 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 interface IUser extends Document {
   _id: string; // Custom ID from Firebase
+  Email: string;
+  userName: string;
   firstName: string;
   middleName?: string;
   lastName: string;
@@ -10,7 +12,6 @@ interface IUser extends Document {
   zipCode?: string;
   Country: string;
   State: string;
-  Email: string;
   Password: string;
   Verified: boolean;
   ProfilePicture?: object;
@@ -43,8 +44,10 @@ interface IUser extends Document {
 
 const userSchema: Schema<IUser> = new Schema(
   {
-    _id: { type: String, required: true }, // Custom ID field
-    firstName: { type: String, required: true },
+    _id: { type: String, unique: true,  required: true }, // Custom ID field
+    Email: { type: String, unique: true, required: true },
+    userName: { type: String, required: true },
+    firstName: { type: String, },
     middleName: { type: String },
     lastName: { type: String, required: true },
     mobileNumber: { type: Number, required: true },
@@ -52,7 +55,6 @@ const userSchema: Schema<IUser> = new Schema(
     zipCode: { type: String },
     Country: { type: String, required: true },
     State: { type: String, required: true },
-    Email: { type: String, required: true },
     Password: { type: String, required: true },
     Verified: { type: Boolean, required: true, default: false },
     ProfilePicture: { type: Object },
@@ -80,7 +82,7 @@ const userSchema: Schema<IUser> = new Schema(
   },
   {
     timestamps: true,
-    _id: false, // Prevent auto-generation of _id
+    _id: false, // Prevent auto-generation of _id 
   }
 );
 
