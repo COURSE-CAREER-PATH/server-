@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 interface IUser extends Document {
   _id: string; // Custom ID from Firebase
@@ -44,18 +44,18 @@ interface IUser extends Document {
 
 const userSchema: Schema<IUser> = new Schema(
   {
-    _id: { type: String, unique: true,  required: true }, // Custom ID field
+    _id: { type: String, unique: true, required: true }, // Custom ID field
     Email: { type: String, unique: true, required: true },
     userName: { type: String, required: true },
-    firstName: { type: String, },
+    firstName: { type: String },
     middleName: { type: String },
-    lastName: { type: String, required: true },
-    mobileNumber: { type: Number, required: true },
+    lastName: { type: String },
+    mobileNumber: { type: Number },
     additionalAddress: { type: String },
     zipCode: { type: String },
-    Country: { type: String, required: true },
-    State: { type: String, required: true },
-    Password: { type: String, required: true },
+    Country: { type: String },
+    State: { type: String },
+    Password: { type: String },
     Verified: { type: Boolean, required: true, default: false },
     ProfilePicture: { type: Object },
     Language: { type: String },
@@ -82,10 +82,9 @@ const userSchema: Schema<IUser> = new Schema(
   },
   {
     timestamps: true,
-    _id: false, // Prevent auto-generation of _id 
   }
 );
 
-const UserModel: Model<IUser> = mongoose.model<IUser>('User', userSchema);
+const UserModel: Model<IUser> = mongoose.model<IUser>("User", userSchema);
 
 export default UserModel;

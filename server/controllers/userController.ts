@@ -69,7 +69,7 @@ const generateToken = (id: string): string => {
 const registerUser = asyncHandler(
   async (req: UserInterface, res: Response): Promise<void> => {
     const { uid, userName, Email, Password } = req.body;
-
+    console.log(req.body);
     // Check if the user already exists
     const userExists = await UserModel.findOne({ Email });
     if (userExists) {
@@ -121,15 +121,20 @@ const registerUser = asyncHandler(
 const loginUser = asyncHandler(
   async (req: UserInterface, res: Response): Promise<void> => {
     try {
-      const { Email, mobileNumber, Password } = req.body;
+      const { Email, Password } = req.body;
 
       // Check if user exists by email or mobile number
-      const user = await UserModel.findOne({
-        $or: [{ email: Email }, { mobileNumber }],
-      });
+      const user = await UserModel.findOne({ Email });
 
       if (!user) {
         res.status(404).send("User not found");
+        return;
+      }
+
+      // Check if the password is defined
+      if (!user.Password) {
+        res.status(500).send("Internal error: User password is missing");
+        console.error("User password is undefined");
         return;
       }
 
@@ -139,36 +144,36 @@ const loginUser = asyncHandler(
         res.status(401).send("Invalid credentials");
         return;
       }
-
+      console.log(user._id);
       // Check if the user is verified
-      if (!user.Verified) {
-        let token = await EmailToken.findOne({ userId: user._id });
-        if (!token) {
-          token = await new EmailToken({
-            userId: user._id,
-            token: crypto.randomBytes(32).toString("hex"),
-          }).save();
+      // if (!user.Verified) {
+      //     let token = await EmailToken.findOne({ userId: user._id });
+      //     if (!token) {
+      //       token = await new EmailToken({
+      //         userId: user._id,
+      //         token: crypto.randomBytes(32).toString("hex"),
+      //       }).save();
 
-          const url = `${process.env.CLIENT_NAME}/user/${user._id}/verify/${token.token}`;
-          await sendEmail(user.Email, "Verify Email", url);
-        }
-        res.status(400).send({
-          message: "An email has been sent to your account, please verify.",
-        });
-        return;
-      }
+      //       const url = `${process.env.CLIENT_NAME}/user/${user._id}/verify/${token.token}`;
+      //       await sendEmail(user.Email, "Verify Email", url);
+      //     }
+      //     res.status(400).send({
+      //       message: "An email has been sent to your account, please verify.",
+      //     });
+      //     return;
+      // }
 
       // If everything is fine, proceed with login success
-
       res.status(201).json({
-        message: "An Email has been sent to your account. Please verify.",
-        _id: user._id, // Ensure ObjectId is converted to string
+        message: "Logged in successfully",
+        _id: user._id.toString(), // Ensure ObjectId is converted to string
         Email: user.Email,
         userName: user.userName,
         token: generateToken(user._id), // Pass the generated token
       });
     } catch (error) {
       res.status(500).send("Internal server error");
+      console.error("Authentication Error", error);
     }
   }
 );
@@ -319,7 +324,6 @@ const updatePersonalUserInfo = asyncHandler(
     }
   }
 );
-
 
 export {
   registerUser,
