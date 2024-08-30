@@ -367,3 +367,79 @@
  *       500:
  *         description: Internal Server Error
  */
+
+
+//api documentation for uploading profile image
+
+/**
+ * @openapi
+ * /user/updateProfilePicture:
+ *   put:
+ *     tags:
+ *       - Users
+ *     summary: Update Profile Picture
+ *     description: Upload and update the user's profile picture.
+ *     security:
+ *       - bearerAuth: []  # Assuming Bearer Token Authentication is used
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - ProfilePicture
+ *             properties:
+ *               ProfilePicture:
+ *                 type: string
+ *                 description: The base64 string or URL of the profile picture to be uploaded.
+ *     responses:
+ *       200:
+ *         description: Profile image uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                   description: Indicates if the profile picture was updated successfully.
+ *                 message:
+ *                   type: string
+ *                   example: Profile image uploaded successfully
+ *                   description: Success message.
+ *                 ProfilePicture:
+ *                   type: object
+ *                   description: Details of the updated profile picture.
+ *       400:
+ *         description: Bad request - User not authenticated or no image provided
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                   description: Indicates failure due to bad request.
+ *                 message:
+ *                   type: string
+ *                   example: User not authenticated
+ *                   description: Error message indicating the issue.
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                   description: Indicates failure due to server error.
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error
+ *                   description: Error message indicating server failure.
+ */

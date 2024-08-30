@@ -57,7 +57,7 @@ const userSchema: Schema<IUser> = new Schema(
     State: { type: String },
     Password: { type: String },
     Verified: { type: Boolean, required: true, default: false },
-    ProfilePicture: { type: Object },
+    ProfilePicture: { type: Object , default: null},
     Language: { type: String },
     Bio: { type: String },
     LinkedIn: { type: String },
