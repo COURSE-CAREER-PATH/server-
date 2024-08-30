@@ -7,6 +7,7 @@ import crypto from "crypto";
 import cloudinary from "../utils/cloudinary";
 import { Request, Response } from "express";
 import UserModel from "../models/userModel";
+import { profile } from "winston";
 
 // Define the shape of the request body
 interface UserInterface extends Request {
@@ -28,7 +29,7 @@ interface UserInterface extends Request {
     State: string;
     additionalAddress: string;
     zipCode: number;
-    ProfilePicture: object;
+    ProfilePicture: string;
     Language: string;
     Bio: string;
     LinkedIn: string;
@@ -325,10 +326,58 @@ const updatePersonalUserInfo = asyncHandler(
   }
 );
 
+// @description updateProfilePicture
+// @route /user/updateProfilePicture
+// @access  private
+const updateProfilePicture = asyncHandler(
+  async (req: UserInterface, res: Response): Promise<void> => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res
+          .status(400)
+          .json({ success: false, message: "User not authenticated" });
+        return;
+      }
+
+      const image = req.body.ProfilePicture;
+
+      if (image) {
+        const uploadedRes = await cloudinary.uploader.upload(image, {
+          upload_preset: "COURSE_CAREER_PATH",
+        });
+        if (uploadedRes) {
+          const ProfilePicture = uploadedRes;
+          // Pass userId and ProfilePicture info to the updateUserProfile function
+          const updatedUser = await updateUserProfile(userId, ProfilePicture);
+          res.status(200).json({
+            success: true,
+            message: "Profile image uploaded successfully",
+            ProfilePicture: updatedUser,
+          });
+
+          return;
+        }
+      } else {
+        res.status(400).json({ success: false, message: "There is no image" });
+        return;
+      }
+    } catch (error) {
+      console.error("Error uploading profile image:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+
+      return;
+    }
+  }
+);
+
 export {
   registerUser,
   loginUser,
   verifyEmailToken,
   googleSignup,
   updatePersonalUserInfo,
+  updateProfilePicture,
 };
