@@ -24,9 +24,11 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 //get routes
 import userRoute from "./routes/userRoute";
+import jobsRoute from "./routes/jobRouter";
 
 //use routes
 app.use("/user", userRoute);
+app.use("/jobs", jobsRoute);
 
 // Server and MongoDB setup
 const URL = process.env.DB_URL as string;

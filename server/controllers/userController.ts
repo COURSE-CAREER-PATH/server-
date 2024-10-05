@@ -29,6 +29,7 @@ interface UserInterface extends Request {
     State: string;
     additionalAddress: string;
     zipCode: number;
+    Course: string;
     ProfilePicture: string;
     Language: string;
     Bio: string;

@@ -14,6 +14,7 @@ interface IUser extends Document {
   State: string;
   Password: string;
   Verified: boolean;
+  Course?: string;
   ProfilePicture?: object;
   Language?: string;
   Bio?: string;
@@ -57,7 +58,8 @@ const userSchema: Schema<IUser> = new Schema(
     State: { type: String },
     Password: { type: String },
     Verified: { type: Boolean, required: true, default: false },
-    ProfilePicture: { type: Object , default: null},
+    Course : { type: String },
+    ProfilePicture: { type: Object, default: null },
     Language: { type: String },
     Bio: { type: String },
     LinkedIn: { type: String },
